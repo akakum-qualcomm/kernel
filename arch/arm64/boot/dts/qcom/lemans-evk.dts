@@ -56,7 +56,7 @@
 				reg = <0>;
 
 				usb0_con_hs_ep: endpoint {
-					remote-endpoint = <&usb_0_dwc3_hs>;
+					remote-endpoint = <&eud_con>;
 				};
 			};
 			port@1 {
@@ -123,6 +123,38 @@
 		port {
 			usb2_con_hs_ep: endpoint {
 				remote-endpoint = <&usb_2_dwc3_hs>;
+			};
+		};
+	};
+
+	connector-3 {
+		compatible = "pcie-m2-e-connector";
+		vpcie3v3-supply = <&vreg_wcn_3p3>;
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				reg = <0>;
+				#address-cells = <1>;
+				#size-cells = <0>;
+
+				m2_e_pcie_ep: endpoint@0 {
+					reg = <0>;
+					remote-endpoint = <&pcieport0_ep>;
+				};
+			};
+
+			port@3 {
+				reg = <3>;
+				#address-cells = <1>;
+				#size-cells = <0>;
+
+				m2_e_uart_ep: endpoint@0 {
+					reg = <0>;
+					remote-endpoint = <&uart17_ep>;
+				};
 			};
 		};
 	};
@@ -250,8 +282,8 @@
 		regulator-min-microvolt = <12000000>;
 		regulator-max-microvolt = <12000000>;
 
-		regulator-boot-on;
 		regulator-always-on;
+		regulator-boot-on;
 	};
 
 	vreg_sdc: regulator-vreg-sdc {
@@ -277,6 +309,7 @@
 
 		vin-supply = <&vreg_dcin_12v>;
 
+		regulator-always-on;
 		regulator-boot-on;
 	};
 };
@@ -598,6 +631,14 @@
 	};
 };
 
+&eud_ep {
+	remote-endpoint = <&usb_0_dwc3_hs>;
+};
+
+&eud_con {
+	remote-endpoint = <&usb0_con_hs_ep>;
+};
+
 &gpi_dma0 {
 	status = "okay";
 };
@@ -825,13 +866,15 @@
 };
 
 &pcie0 {
-	perst-gpios = <&tlmm 2 GPIO_ACTIVE_LOW>;
-	wake-gpios = <&tlmm 0 GPIO_ACTIVE_HIGH>;
-
 	pinctrl-0 = <&pcie0_default_state>;
 	pinctrl-names = "default";
 
 	status = "okay";
+};
+
+&pcieport0 {
+	reset-gpios = <&tlmm 2 GPIO_ACTIVE_LOW>;
+	wake-gpios = <&tlmm 0 GPIO_ACTIVE_LOW>;
 };
 
 &pcie0_phy {
@@ -842,13 +885,15 @@
 };
 
 &pcie1 {
-	perst-gpios = <&tlmm 4 GPIO_ACTIVE_LOW>;
-	wake-gpios = <&tlmm 5 GPIO_ACTIVE_HIGH>;
-
 	pinctrl-0 = <&pcie1_default_state>;
 	pinctrl-names = "default";
 
 	status = "okay";
+};
+
+&pcieport1 {
+	reset-gpios = <&tlmm 4 GPIO_ACTIVE_LOW>;
+	wake-gpios = <&tlmm 5 GPIO_ACTIVE_LOW>;
 };
 
 &pcie1_phy {
@@ -856,6 +901,14 @@
 	vdda-pll-supply = <&vreg_l1c>;
 
 	status = "okay";
+};
+
+&pcieport0 {
+	port {
+		pcieport0_ep: endpoint {
+			remote-endpoint = <&m2_e_pcie_ep>;
+		};
+	};
 };
 
 &psci {
@@ -1090,18 +1143,10 @@
 &uart17 {
 	status = "okay";
 
-	bluetooth: bluetooth {
-		compatible = "qcom,wcn6855-bt";
-		max-speed = <3200000>;
-
-		vddrfacmn-supply = <&vreg_wcn_3p3>;
-		vddaon-supply = <&vreg_wcn_3p3>;
-		vddwlcx-supply = <&vreg_wcn_3p3>;
-		vddwlmx-supply = <&vreg_wcn_3p3>;
-		vddbtcmx-supply = <&vreg_wcn_3p3>;
-		vddrfa0p8-supply = <&vreg_wcn_3p3>;
-		vddrfa1p2-supply = <&vreg_wcn_3p3>;
-		vddrfa1p8-supply = <&vreg_wcn_3p3>;
+	port {
+		uart17_ep: endpoint {
+			remote-endpoint = <&m2_e_uart_ep>;
+		};
 	};
 };
 
@@ -1127,7 +1172,7 @@
 };
 
 &usb_0_dwc3_hs {
-	remote-endpoint = <&usb0_con_hs_ep>;
+	remote-endpoint = <&eud_ep>;
 };
 
 &usb_0_dwc3_ss {

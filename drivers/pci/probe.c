@@ -2449,7 +2449,6 @@ static void pci_release_dev(struct device *dev)
 	pci_release_of_node(pci_dev);
 	pcibios_release_device(pci_dev);
 	pci_bus_put(pci_dev->bus);
-	kfree(pci_dev->driver_override);
 	bitmap_free(pci_dev->dma_alias_mask);
 	dev_dbg(dev, "device released\n");
 	kfree(pci_dev);
@@ -2740,6 +2739,8 @@ void pci_device_add(struct pci_dev *dev, struct pci_bus *bus)
 	/* Notifier could use PCI capabilities */
 	ret = device_add(&dev->dev);
 	WARN_ON(ret < 0);
+
+	platform_pci_configure_wake(dev);
 
 	pci_npem_create(dev);
 

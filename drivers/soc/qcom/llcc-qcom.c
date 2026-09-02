@@ -1775,6 +1775,20 @@ static const struct llcc_slice_config sdm845_data[] =  {{
 	},
 };
 
+static const struct llcc_slice_config shikra_data[] = {
+	{
+		.usecase_id = LLCC_ECC,
+		.slice_id = 26,
+		.max_cap = 256,
+		.priority = 3,
+		.fixed_size = true,
+		.bonus_ways = 0x3,
+		.cache_mode = 0,
+		.activate_on_init = true,
+		.vict_prio = true,
+	},
+};
+
 static const struct llcc_slice_config sm6350_data[] =  {
 	{
 		.usecase_id = LLCC_CPUSS,
@@ -3752,7 +3766,7 @@ static const struct llcc_slice_config x1e80100_data[] = {
 static const struct llcc_edac_reg_offset llcc_v1_edac_reg_offset = {
 	.trp_ecc_error_status0 = 0x20344,
 	.trp_ecc_error_status1 = 0x20348,
-	.trp_ecc_sb_err_syn0 = 0x2304c,
+	.trp_ecc_sb_err_syn0 = 0x2034c,
 	.trp_ecc_db_err_syn0 = 0x20370,
 	.trp_ecc_error_cntr_clear = 0x20440,
 	.trp_interrupt_0_status = 0x20480,
@@ -4006,6 +4020,16 @@ static const struct qcom_llcc_config sdm845_cfg[] = {
 	},
 };
 
+static const struct qcom_llcc_config shikra_cfg[] = {
+	{
+		.sct_data	= shikra_data,
+		.size		= ARRAY_SIZE(shikra_data),
+		.reg_offset	= llcc_v2_1_reg_offset,
+		.edac_reg_offset = &llcc_v2_1_edac_reg_offset,
+		.irq_configured = true,
+	},
+};
+
 static const struct qcom_llcc_config sm6350_cfg[] = {
 	{
 		.sct_data	= sm6350_data,
@@ -4161,6 +4185,11 @@ static const struct qcom_sct_config sc8280xp_cfgs = {
 static const struct qcom_sct_config sdm845_cfgs = {
 	.llcc_config	= sdm845_cfg,
 	.num_config	= ARRAY_SIZE(sdm845_cfg),
+};
+
+static const struct qcom_sct_config shikra_cfgs = {
+	.llcc_config	= shikra_cfg,
+	.num_config	= ARRAY_SIZE(shikra_cfg),
 };
 
 static const struct qcom_sct_config sm6350_cfgs = {
@@ -4954,6 +4983,7 @@ static const struct of_device_id qcom_llcc_of_match[] = {
 	{ .compatible = "qcom,sc8180x-llcc", .data = &sc8180x_cfgs },
 	{ .compatible = "qcom,sc8280xp-llcc", .data = &sc8280xp_cfgs },
 	{ .compatible = "qcom,sdm845-llcc", .data = &sdm845_cfgs },
+	{ .compatible = "qcom,shikra-llcc", .data = &shikra_cfgs },
 	{ .compatible = "qcom,sm6350-llcc", .data = &sm6350_cfgs },
 	{ .compatible = "qcom,sm7150-llcc", .data = &sm7150_cfgs },
 	{ .compatible = "qcom,sm8150-llcc", .data = &sm8150_cfgs },

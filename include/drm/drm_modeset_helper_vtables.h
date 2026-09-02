@@ -355,7 +355,7 @@ struct drm_crtc_helper_funcs {
 	 * deadlock.
 	 */
 	int (*atomic_check)(struct drm_crtc *crtc,
-			    struct drm_atomic_state *state);
+			    struct drm_atomic_commit *state);
 
 	/**
 	 * @atomic_begin:
@@ -376,7 +376,7 @@ struct drm_crtc_helper_funcs {
 	 * optional.
 	 */
 	void (*atomic_begin)(struct drm_crtc *crtc,
-			     struct drm_atomic_state *state);
+			     struct drm_atomic_commit *state);
 	/**
 	 * @atomic_flush:
 	 *
@@ -400,7 +400,7 @@ struct drm_crtc_helper_funcs {
 	 * optional.
 	 */
 	void (*atomic_flush)(struct drm_crtc *crtc,
-			     struct drm_atomic_state *state);
+			     struct drm_atomic_commit *state);
 
 	/**
 	 * @atomic_enable:
@@ -422,7 +422,7 @@ struct drm_crtc_helper_funcs {
 	 * This function is optional.
 	 */
 	void (*atomic_enable)(struct drm_crtc *crtc,
-			      struct drm_atomic_state *state);
+			      struct drm_atomic_commit *state);
 
 	/**
 	 * @atomic_disable:
@@ -442,7 +442,7 @@ struct drm_crtc_helper_funcs {
 	 * This function is optional.
 	 */
 	void (*atomic_disable)(struct drm_crtc *crtc,
-			       struct drm_atomic_state *state);
+			       struct drm_atomic_commit *state);
 
 	/**
 	 * @get_scanout_position:
@@ -490,6 +490,18 @@ struct drm_crtc_helper_funcs {
 				     bool in_vblank_irq, int *vpos, int *hpos,
 				     ktime_t *stime, ktime_t *etime,
 				     const struct drm_display_mode *mode);
+
+	/**
+	 * @handle_vblank_timeout: Handles timeouts of the vblank timer.
+	 *
+	 * Called by CRTC's the vblank timer on each timeout. Semantics is
+	 * equivalient to drm_crtc_handle_vblank(). Implementations should
+	 * invoke drm_crtc_handle_vblank() as part of processing the timeout.
+	 *
+	 * This callback is optional. If unset, the vblank timer invokes
+	 * drm_crtc_handle_vblank() directly.
+	 */
+	bool (*handle_vblank_timeout)(struct drm_crtc *crtc);
 };
 
 /**
@@ -724,7 +736,7 @@ struct drm_encoder_helper_funcs {
 	 * @atomic_enable.
 	 */
 	void (*atomic_disable)(struct drm_encoder *encoder,
-			       struct drm_atomic_state *state);
+			       struct drm_atomic_commit *state);
 
 	/**
 	 * @atomic_enable:
@@ -747,7 +759,7 @@ struct drm_encoder_helper_funcs {
 	 * @atomic_disable.
 	 */
 	void (*atomic_enable)(struct drm_encoder *encoder,
-			      struct drm_atomic_state *state);
+			      struct drm_atomic_commit *state);
 
 	/**
 	 * @disable:
@@ -820,7 +832,7 @@ struct drm_encoder_helper_funcs {
 	 *
 	 * This function is called in the check phase of an atomic update. The
 	 * driver is not allowed to change anything outside of the free-standing
-	 * state objects passed-in or assembled in the overall &drm_atomic_state
+	 * state objects passed-in or assembled in the overall &drm_atomic_commit
 	 * update tracking structure.
 	 *
 	 * Also beware that userspace can request its own custom modes, neither
@@ -1055,7 +1067,7 @@ struct drm_connector_helper_funcs {
 	 *
 	 * This function is called in the check phase of an atomic update. The
 	 * driver is not allowed to change anything outside of the
-	 * &drm_atomic_state update tracking structure passed in.
+	 * &drm_atomic_commit update tracking structure passed in.
 	 *
 	 * RETURNS:
 	 *
@@ -1065,7 +1077,7 @@ struct drm_connector_helper_funcs {
 	 * for this.
 	 */
 	struct drm_encoder *(*atomic_best_encoder)(struct drm_connector *connector,
-						   struct drm_atomic_state *state);
+						   struct drm_atomic_commit *state);
 
 	/**
 	 * @atomic_check:
@@ -1088,7 +1100,7 @@ struct drm_connector_helper_funcs {
 	 *
 	 * This function is called in the check phase of an atomic update. The
 	 * driver is not allowed to change anything outside of the free-standing
-	 * state objects passed-in or assembled in the overall &drm_atomic_state
+	 * state objects passed-in or assembled in the overall &drm_atomic_commit
 	 * update tracking structure.
 	 *
 	 * RETURNS:
@@ -1099,7 +1111,7 @@ struct drm_connector_helper_funcs {
 	 * deadlock.
 	 */
 	int (*atomic_check)(struct drm_connector *connector,
-			    struct drm_atomic_state *state);
+			    struct drm_atomic_commit *state);
 
 	/**
 	 * @atomic_commit:
@@ -1114,7 +1126,7 @@ struct drm_connector_helper_funcs {
 	 * This callback is used by the atomic modeset helpers.
 	 */
 	void (*atomic_commit)(struct drm_connector *connector,
-			      struct drm_atomic_state *state);
+			      struct drm_atomic_commit *state);
 
 	/**
 	 * @prepare_writeback_job:
@@ -1310,7 +1322,7 @@ struct drm_plane_helper_funcs {
 	 *
 	 * This function is called in the check phase of an atomic update. The
 	 * driver is not allowed to change anything outside of the
-	 * &drm_atomic_state update tracking structure.
+	 * &drm_atomic_commit update tracking structure.
 	 *
 	 * RETURNS:
 	 *
@@ -1320,7 +1332,7 @@ struct drm_plane_helper_funcs {
 	 * deadlock.
 	 */
 	int (*atomic_check)(struct drm_plane *plane,
-			    struct drm_atomic_state *state);
+			    struct drm_atomic_commit *state);
 
 	/**
 	 * @atomic_update:
@@ -1337,7 +1349,7 @@ struct drm_plane_helper_funcs {
 	 * This callback is used by the atomic modeset helpers, but it is optional.
 	 */
 	void (*atomic_update)(struct drm_plane *plane,
-			      struct drm_atomic_state *state);
+			      struct drm_atomic_commit *state);
 
 	/**
 	 * @atomic_enable:
@@ -1362,7 +1374,7 @@ struct drm_plane_helper_funcs {
 	 * implement the complete plane update in @atomic_update.
 	 */
 	void (*atomic_enable)(struct drm_plane *plane,
-			      struct drm_atomic_state *state);
+			      struct drm_atomic_commit *state);
 
 	/**
 	 * @atomic_disable:
@@ -1387,7 +1399,7 @@ struct drm_plane_helper_funcs {
 	 * optional. It's intended to reverse the effects of @atomic_enable.
 	 */
 	void (*atomic_disable)(struct drm_plane *plane,
-			       struct drm_atomic_state *state);
+			       struct drm_atomic_commit *state);
 
 	/**
 	 * @atomic_async_check:
@@ -1411,7 +1423,7 @@ struct drm_plane_helper_funcs {
 	 * can not be applied in asynchronous manner.
 	 */
 	int (*atomic_async_check)(struct drm_plane *plane,
-				  struct drm_atomic_state *state, bool flip);
+				  struct drm_atomic_commit *state, bool flip);
 
 	/**
 	 * @atomic_async_update:
@@ -1448,7 +1460,7 @@ struct drm_plane_helper_funcs {
 	 *    for deferring if needed, until a common solution is created.
 	 */
 	void (*atomic_async_update)(struct drm_plane *plane,
-				    struct drm_atomic_state *state);
+				    struct drm_atomic_commit *state);
 
 	/**
 	 * @get_scanout_buffer:
@@ -1541,7 +1553,7 @@ struct drm_mode_config_helper_funcs {
 	 * This hook is optional, the default implementation is
 	 * drm_atomic_helper_commit_tail().
 	 */
-	void (*atomic_commit_tail)(struct drm_atomic_state *state);
+	void (*atomic_commit_tail)(struct drm_atomic_commit *state);
 
 	/**
 	 * @atomic_commit_setup:
@@ -1562,7 +1574,7 @@ struct drm_mode_config_helper_funcs {
 	 *
 	 * This hook is optional.
 	 */
-	int (*atomic_commit_setup)(struct drm_atomic_state *state);
+	int (*atomic_commit_setup)(struct drm_atomic_commit *state);
 };
 
 #endif

@@ -838,7 +838,7 @@ static int msm_dp_display_disable(struct msm_dp_display_private *dp,
 
 int msm_dp_display_set_stream_info(struct msm_dp *msm_dp_display, struct msm_dp_panel *panel,
 				   enum msm_dp_stream_id stream_id, u32 start_slot,
-				   u32 num_slots, u32 pbn)
+				   u32 num_slots, u32 pbn, int vcpi)
 {
 	int rc = 0;
 	struct msm_dp_display_private *dp;
@@ -859,9 +859,11 @@ int msm_dp_display_set_stream_info(struct msm_dp *msm_dp_display, struct msm_dp_
 
 	msm_dp_ctrl_set_mst_channel_info(dp->ctrl, stream_id, start_slot, num_slots);
 
-	panel->stream_id = stream_id;
-	panel->pbn = pbn;
-	msm_dp_panel_set_pixel_base(panel, dp->pixel_base[stream_id]);
+	if (panel) {
+		panel->stream_id = stream_id;
+		panel->pbn = pbn;
+		msm_dp_panel_set_pixel_base(panel, dp->pixel_base[stream_id]);
+	}
 
 	return rc;
 }
@@ -1594,7 +1596,7 @@ int msm_dp_mst_register(struct msm_dp *msm_dp_display)
 }
 
 int msm_dp_display_set_mode_helper(struct msm_dp *msm_dp_display,
-				   struct drm_atomic_state *state,
+				   struct drm_atomic_commit *state,
 				   struct drm_encoder *drm_encoder,
 				   struct msm_dp_panel *msm_dp_panel)
 {
@@ -1610,7 +1612,7 @@ int msm_dp_display_set_mode_helper(struct msm_dp *msm_dp_display,
 }
 
 void msm_dp_display_atomic_prepare(struct msm_dp *msm_dp_display,
-				   struct drm_atomic_state *state)
+				   struct drm_atomic_commit *state)
 {
 	int rc = 0;
 	struct msm_dp_display_private *dp;
@@ -1657,7 +1659,7 @@ void msm_dp_display_atomic_enable(struct msm_dp *msm_dp_display)
 
 	dp = container_of(msm_dp_display, struct msm_dp_display_private, msm_dp_display);
 
-	msm_dp_display_set_stream_info(msm_dp_display, dp->panel, 0, 0, 0, 0);
+	msm_dp_display_set_stream_info(msm_dp_display, dp->panel, 0, 0, 0, 0, 0);
 
 	msm_dp_display_enable_helper(msm_dp_display, dp->panel);
 }
@@ -1784,7 +1786,8 @@ void msm_dp_bridge_hpd_disable(struct drm_bridge *bridge)
 }
 
 void msm_dp_bridge_hpd_notify(struct drm_bridge *bridge,
-			  enum drm_connector_status status)
+			      struct drm_connector *connector,
+			      enum drm_connector_status status)
 {
 	struct msm_dp_bridge *msm_dp_bridge = to_dp_bridge(bridge);
 	struct msm_dp *msm_dp_display = msm_dp_bridge->msm_dp_display;
